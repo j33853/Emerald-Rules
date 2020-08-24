@@ -1,0 +1,96 @@
+//package com.wellcare.emerald.rules.MedicareEnrollment( )//created on: Mar 17, 2020
+package com.wellcare.emerald.rules;
+
+//list any import classes here.
+
+import com.wellcare.rules.Transaction;
+import com.wellcare.rules.RuleMessage;
+import com.wellcare.rules.Helper;
+import java.time.LocalDate;
+
+
+//declare any global variables here
+
+//function boolean isValidMBI( String mbi ) {
+    //function content (can have multiple functions)
+//}
+
+// Rule to Validate Gender EME-1573
+rule "Validate Gender"
+    ruleflow-group "CommonValidation"
+	dialect "mvel"
+	salience -20
+    when
+        txn : Transaction( genderTypeCode == null || genderTypeCode.isEmpty() || genderTypeCode.matches("^[^MFU]$") )
+        
+    then
+		RuleMessage msg = new RuleMessage();
+		msg.setMessageCode("002");
+		msg.setMessageText("Invalid Gender");
+		insert(msg);
+			
+end
+
+//Validate DOB for all members-1 EME-1573
+rule "Validate Applicant DOB-1"
+    ruleflow-group "CommonValidation"
+	dialect "mvel"
+	salience -15
+    when
+        txn : Transaction( applicantDOB.isAfter(LocalDate.now()) )
+        
+    then
+		RuleMessage msg = new RuleMessage();
+		msg.setMessageCode("003");
+		msg.setMessageText("Member date of birth is in the future");
+		insert(msg);
+			
+end
+
+//Validate DOB for all members-2 EME-1573
+rule "Validate Applicant DOB-2"
+    ruleflow-group "CommonValidation"
+	dialect "mvel"
+	salience -10
+    when
+        txn : Transaction( applicantDOB.getYear() < 1900 )
+        
+    then
+		RuleMessage msg = new RuleMessage();
+		msg.setMessageCode("005");
+		msg.setMessageText("Member date of birth is in the past");
+		insert(msg);
+			
+end
+
+//Validate DOB for all members-3 EME-1573
+rule "Validate Applicant DOB-3"
+    ruleflow-group "CommonValidation"
+	dialect "mvel"
+	salience -5
+    when
+        txn : Transaction( applicantDOB==null )
+        
+    then
+		RuleMessage msg = new RuleMessage();
+		msg.setMessageCode("004");
+		msg.setMessageText("Member date of birth is Null");
+		insert(msg);
+			
+end
+
+//The ability to identify invalid SSN EME-850
+rule "Validate Applicant SSN"
+    ruleflow-group "CommonValidation"
+	dialect "mvel"
+	salience -25
+    when
+        txn : Transaction( applicantSSN==null || applicantSSN == '123456789' || applicantSSN.matches("(000|666|900|999).*") || applicantSSN.endsWith("0000") || applicantSSN.startsWith("00",3) )
+        
+    then
+		RuleMessage msg = new RuleMessage();
+		msg.setMessageCode("008");
+		msg.setMessageText("Invalid SSN");
+		insert(msg);
+			
+end

@@ -1,0 +1,17 @@
+package com.wellcare.rules;
+
+import java.lang.Number;
+
+rule "ValidateGenderRule"
+	dialect "mvel"
+	salience 10
+	ruleflow-group "CommonValidation"
+	when
+		Transaction( genderTypeCode == null || genderTypeCode matches "^[^MFU]$" )
+	then
+		RuleMessage fact0 = new RuleMessage();
+		fact0.setMessageCode( "002" );
+		fact0.setMessageText( "Invalid Gender" );
+		insertLogical( fact0 );
+		 System.out.println( drools.getRule().getName())
+end
